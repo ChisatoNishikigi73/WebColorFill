@@ -2,155 +2,33 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小孤独的颜色填埋场（测试中）</title>
-    <style>
-        .grid-container {
-            overflow: hidden;
-            border: 2px solid rgb(0, 0, 0);
-            width: 95vw;
-            height: 260vh;
-            margin: 2.5vh auto;
-            display: inline-block;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .grid {
-            display: grid;
-            gap: 0;
-            width: 0;
-            height: 0;
-            transform-origin: center center;
-            transition: transform 0.2s ease;
-        }
-
-        .cell {
-            width: 10px;
-            height: 10px;
-            background-color: #ddd;
-            cursor: pointer;
-            border: 0.5px solid rgb(204, 204, 204);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* 添加颜色选择框的样式 */
-        .color-picker {
-            display: flex;
-            align-items: center;
-            margin: 10px;
-        }
-
-        /* 添加所选颜色展示框的样式 */
-        .selected-color {
-            width: 30px;
-            height: 30px;
-            margin-right: 10px;
-            border: 1px solid #000;
-        }
-    </style>
+    <link rel="stylesheet" href="./static/css/styles.css">
+    <script src="./static/js/panzoom-940.js"></script>
+    <script src="./static/js/main.js" defer=""></script>
 </head>
 
 <body>
 <h1>小孤独的颜色填埋场（测试中）</h1>
-<div class="color-picker">
-    <div class="selected-color" id="selected-color" style="background-color: #000;"></div>
-    <input type="color" id="color-input">
+<div class="color-count">一共填充了<span id="color-count">0</span>个颜色</div>
+<div class="mode-buttons">
+    <button id="pen-button" class="mode-button active">画笔</button>
+    <button id="straw-button" class="mode-button">吸管</button>
+    <button id="delete-button" class="mode-button">删除</button>
 </div>
-
-<div class="grid-container" id="grid-container" onwheel="handleScroll(event)">
-    <div class="grid" id="grid">
+<div class="color-container">
+    <div class="color-picker">
+        <div class="selected-color" id="selected-color" style="background-color: #000;"></div>
+        <input type="color" id="color-input">
     </div>
+    <div class="color-bar" id="color-bar"></div>
 </div>
 
-<!-- <button onclick="generateGrid()">应用</button> -->
-<button onclick="getColorData()">获取颜色信息</button>
-<script>
-    var grid = document.getElementById('grid');
-    var gridContainer = document.getElementById('grid-container');
-    var zoomLevel = 1;
-    var isDragging = false;
-    var initialMouseX = 0;
-    var initialMouseY = 0;
-    var initialGridX = 0;
-    var initialGridY = 0;
-    var colorInput = document.getElementById('color-input');
-    var selectedColorBox = document.getElementById('selected-color');
-
-    gridContainer.style.position = 'relative';
-
-    function generateGrid() {
-        const rows = 200;
-        const columns = 200;
-
-        grid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-        grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
-
-        grid.innerHTML = '';
-
-        for (let i = 0; i < rows * columns; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-
-            cell.addEventListener('click', function () {
-                const row = Math.floor(i / columns);
-                const column = i % columns;
-                const color = colorInput.value;
-
-                // 向服务器提交位置和颜色信息
-                fetch('/colorfill/addColor', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({row, column, color})
-                })
-                    .then(response => response.text())
-                    .then(data => {
-                        console.log(data);
-                    });
-
-                this.style.backgroundColor = colorInput.value;
-                this.style.borderColor = colorInput.value;
-            });
-
-            grid.appendChild(cell);
-        }
-    }
-
-    function handleScroll(event) {
-        zoom(event);
-        event.preventDefault();
-    }
-
-    generateGrid();
-
-    function getColorData() {
-        fetch('/colorfill/getColorData')
-            .then(response => response.json())
-            .then(data => {
-                // 处理从服务器获取的颜色信息
-                data.forEach(colorInfo => {
-                    const {row, column, color} = colorInfo;
-                    const cellIndex = row * 200 + column;
-                    const cell = grid.children[cellIndex];
-                    cell.style.backgroundColor = color;
-                    cell.style.borderColor = color;
-                });
-            });
-    }
-
-    // 颜色选择器的事件处理
-    colorInput.addEventListener('input', function () {
-        selectedColorBox.style.backgroundColor = this.value;
-    });
-
-    // 页面加载时自动获取颜色信息
-    window.addEventListener('load', function () {
-        getColorData();
-    });
-</script>
+<div class="grid-container" id="grid-container">
+    <div class="grid" id="grid"></div>
+</div>
 </body>
 
 </html>
